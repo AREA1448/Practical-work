@@ -3,8 +3,6 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Random;
-import javax.sound.sampled.*;
-import java.io.File;
 import javax.swing.text.*;
 
 class BullsAndCowsGUI extends JFrame {
@@ -14,7 +12,6 @@ class BullsAndCowsGUI extends JFrame {
     private String secret;
     private int attempts = 0;
     private JButton guessButton;
-    private Clip backgroundMusic;
     private JLabel attemptsLabel;
     private JProgressBar progress;
     private static Color skyBlue = new Color(135, 206, 235);
@@ -106,15 +103,11 @@ class BullsAndCowsGUI extends JFrame {
 
         guessButton.addActionListener(e -> processGuess());
         restartButton.addActionListener(e -> restartGame());
-        quitButton.addActionListener(e -> {
-            stopMusic();
-            System.exit(0);
-        });
+        quitButton.addActionListener(e -> System.exit(0));
         guessField.addActionListener(e -> processGuess());
 
         appendCentered("Game started! Secret number generated.\n");
         appendCentered("Enter 4 unique digits (no leading zero)\n\n");
-        playBackgroundMusic("background_music.wav");
         showTutorial();
     }
 
@@ -185,12 +178,10 @@ class BullsAndCowsGUI extends JFrame {
             appendCentered("The number was: " + secret);
             guessButton.setEnabled(false);
             guessField.setEnabled(false);
-            stopMusic();
         } else if (attempts >= 10) {
             appendCentered("\nGame over! Out of attempts. Secret was: " + secret);
             guessButton.setEnabled(false);
             guessField.setEnabled(false);
-            stopMusic();
         }
     }
 
@@ -203,25 +194,6 @@ class BullsAndCowsGUI extends JFrame {
         return new int[]{bulls, cows};
     }
 
-    private void playBackgroundMusic(String filePath) {
-        try {
-            AudioInputStream audioInput = AudioSystem.getAudioInputStream(new File(filePath));
-            backgroundMusic = AudioSystem.getClip();
-            backgroundMusic.open(audioInput);
-            backgroundMusic.loop(Clip.LOOP_CONTINUOUSLY);
-            backgroundMusic.start();
-        } catch (Exception e) {
-            System.out.println("Error playing music: " + e.getMessage());
-        }
-    }
-
-    private void stopMusic() {
-        if (backgroundMusic != null && backgroundMusic.isRunning()) {
-            backgroundMusic.stop();
-            backgroundMusic.close();
-        }
-    }
-
     private void restartGame() {
         secret = generateSecret();
         attempts = 0;
@@ -232,19 +204,13 @@ class BullsAndCowsGUI extends JFrame {
         guessField.setEnabled(true);
         attemptsLabel.setText("Attempts: 0");
         progress.setValue(0);
-        stopMusic();
-        playBackgroundMusic("background_music.wav");
     }
 }
 
 public class MainMenu extends JFrame {
-    private static int width = 550;
-    private static int height = 450;
-    private static boolean fullScreen = false;
     private static Color skyBlue = new Color(135, 206, 235);
     private static Color grassGreen = new Color(34, 139, 34);
     private static Color barnRed = new Color(139, 0, 0);
-    private Clip menuMusic;
 
     public MainMenu() {
         System.setProperty("swing.aatext", "true");
@@ -289,13 +255,6 @@ public class MainMenu extends JFrame {
         startButton.addActionListener(e -> startGame());
         addHoverEffect(startButton, grassGreen);
 
-        JButton settingsButton = new JButton("Settings");
-        settingsButton.setFont(new Font("Arial", Font.BOLD, 16));
-        settingsButton.setBackground(grassGreen);
-        settingsButton.setForeground(Color.WHITE);
-        settingsButton.addActionListener(e -> showSettings());
-        addHoverEffect(settingsButton, grassGreen);
-
         JButton exitButton = new JButton("Exit");
         exitButton.setFont(new Font("Arial", Font.BOLD, 16));
         exitButton.setBackground(barnRed);
@@ -304,11 +263,8 @@ public class MainMenu extends JFrame {
         addHoverEffect(exitButton, barnRed);
 
         panel.add(startButton, gbc);
-        panel.add(settingsButton, gbc);
         panel.add(exitButton, gbc);
         mainPanel.add(panel, BorderLayout.CENTER);
-
-        playBackgroundMusic("menu_music.wav");
     }
 
     private void addHoverEffect(JButton button, Color baseColor) {
@@ -323,57 +279,8 @@ public class MainMenu extends JFrame {
     }
 
     private void startGame() {
-        stopMusic();
         dispose();
         new BullsAndCowsGUI().setVisible(true);
-    }
-
-    private void showSettings() {
-        // Settings dialog remains unchanged
-        JDialog dialog = new JDialog(this, "Settings", true);
-        dialog.setSize(300, 200);
-        dialog.setLocationRelativeTo(this);
-        dialog.getContentPane().setBackground(skyBlue);
-        dialog.setLayout(new FlowLayout());
-
-        String[] resolutions = {"Small (550x450)", "Medium (800x600)", "Large (1024x768)"};
-        JComboBox<String> resolutionCombo = new JComboBox<>(resolutions);
-        JCheckBox fullScreenCheck = new JCheckBox("Full Screen Mode", fullScreen);
-
-        JButton okButton = new JButton("OK");
-        okButton.addActionListener(e -> {
-            String selected = (String) resolutionCombo.getSelectedItem();
-            if ("Small (550x450)".equals(selected)) { width = 550; height = 450; }
-            else if ("Medium (800x600)".equals(selected)) { width = 800; height = 600; }
-            else { width = 1024; height = 768; }
-            fullScreen = fullScreenCheck.isSelected();
-            dialog.dispose();
-        });
-
-        dialog.add(new JLabel("Screen Resolution:"));
-        dialog.add(resolutionCombo);
-        dialog.add(fullScreenCheck);
-        dialog.add(okButton);
-        dialog.setVisible(true);
-    }
-
-    private void playBackgroundMusic(String filePath) {
-        try {
-            AudioInputStream audioInput = AudioSystem.getAudioInputStream(new File(filePath));
-            menuMusic = AudioSystem.getClip();
-            menuMusic.open(audioInput);
-            menuMusic.loop(Clip.LOOP_CONTINUOUSLY);
-            menuMusic.start();
-        } catch (Exception e) {
-            System.out.println("Error playing music: " + e.getMessage());
-        }
-    }
-
-    private void stopMusic() {
-        if (menuMusic != null && menuMusic.isRunning()) {
-            menuMusic.stop();
-            menuMusic.close();
-        }
     }
 
     public static void main(String[] args) {
